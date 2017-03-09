@@ -1,0 +1,4 @@
+include ':actionbarsherlock'
+include ':viewpagerindicator'
+include ':slidingmenu'
+

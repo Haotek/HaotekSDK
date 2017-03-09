@@ -1,0 +1,175 @@
+apply plugin: 'android-library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+group = rootProject.ext.pomGroupId
+version = rootProject.ext.versionName
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 22
+        versionCode 1
+        versionName version
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        abortOnError false
+    }
+
+    buildTypes {
+        release {
+            shrinkResources true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/notice.txt'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:support-v4:25.2.0'
+    testCompile 'junit:junit:4.12'
+}
+
+def pomArtifactId = 'viewpagerindicator'
+
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+}
+
+task androidJavadocsJar(type: Jar) {
+    classifier = 'javadoc'
+    baseName = pomArtifactId
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    baseName = pomArtifactId
+    from android.sourceSets.main.java.srcDirs
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+    archives androidSourcesJar
+    archives androidJavadocsJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    key = properties.getProperty("bintray.apikey")
+    user = properties.getProperty("bintray.user")
+    configurations = ['archives']
+    pkg {
+        repo = "viewpagerindicator"
+        name = "ViewPagerIndicator"
+        // #CONFIG# project name in jcenter
+        websiteUrl = rootProject.ext.scmUrl
+        vcsUrl = rootProject.ext.scmConnectionUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM. xml  with proper parameters
+        pom {
+            version = rootProject.ext.versionName
+            groupId = rootProject.ext.pomGroupId
+            artifactId = pomArtifactId
+            project {
+                packaging 'aar'
+                name 'ViewPagerIndicator'
+                url rootProject.ext.scmUrl
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'Haotek'
+                        name 'Haotek'
+                        email 'jakewharton@gmail.com'
+                    }
+                }
+                scm {
+                    connection rootProject.ext.scmConnectionUrl
+                    developerConnection rootProject.ext.scmConnectionUrl
+                    url rootProject.ext.scmUrl
+                }
+            }
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///${rootProject.rootDir}/maven-repository")
+            pom.project {
+                version = rootProject.ext.versionName
+                groupId = rootProject.ext.pomGroupId
+                artifactId = pomArtifactId
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+//                      url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                scm {
+                    url rootProject.ext.scmUrl
+                    connection rootProject.ext.scmConnectionUrl
+                    developerConnection rootProject.ext.scmDeveloperConnectionUrl
+                }
+            }
+        }
+    }
+}
